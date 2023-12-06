@@ -5,6 +5,8 @@ import java.awt.*;
 import java.util.Random;
 import java.awt.geom.RoundRectangle2D;
 import javax.swing.Timer;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 public class ImagePanel extends JPanel {
 
@@ -20,6 +22,7 @@ public class ImagePanel extends JPanel {
     private boolean[][] drawBackgroundImage; // Array to track whether to draw background image for each element
     private int consecutiveFalseCount = 0;
     private Timer delayTimer;
+    private Deque<Integer> stack;
 
     public ImagePanel(String[] imagePaths) {
         initializeImages(imagePaths);
@@ -28,19 +31,30 @@ public class ImagePanel extends JPanel {
         initializeImageIndices();
         this.setBackground(Color.BLACK);
         initializeTimer();
-    }
+        this.stack = new ArrayDeque<>();
+        }
     
     private void initializeTimer() {
-        delayTimer = new Timer(1000, e -> {
-            // Toggle the boolean variable for the next draw after the delay
-            drawBackgroundImage[previousClickedIndices[0]][previousClickedIndices[1]] =
-                    !drawBackgroundImage[previousClickedIndices[0]][previousClickedIndices[1]];
-            drawBackgroundImage[previousClickedIndices[2]][previousClickedIndices[3]] =
-                    !drawBackgroundImage[previousClickedIndices[2]][previousClickedIndices[3]];
-            repaint();
-            consecutiveFalseCount = 0; // Reset consecutiveFalseCount after the delay
-        });
+    	delayTimer = new Timer(1000, e -> {
+    	    drawBackgroundImage[previousClickedIndices[0]][previousClickedIndices[1]] =
+    	            !drawBackgroundImage[previousClickedIndices[0]][previousClickedIndices[1]];
+    	    drawBackgroundImage[previousClickedIndices[2]][previousClickedIndices[3]] =
+    	            !drawBackgroundImage[previousClickedIndices[2]][previousClickedIndices[3]];
+    	    repaint();
+    	    consecutiveFalseCount = 0;
+    	    // Add the logic to freeze and unfreeze images here
+    	    freezeUnfreezeImages();
+    	});
         delayTimer.setRepeats(false); // Set to false to execute the timer only once
+    }
+    
+    private void freezeUnfreezeImages() {
+        int size = stack.size();
+        for (int k = 0; k < size; k++) {
+            int index = stack.pop();
+            imageFrozen[index] = !imageFrozen[index];
+        }
+        repaint();
     }
     
     private void initializeAppearedImages() {
@@ -189,6 +203,12 @@ public class ImagePanel extends JPanel {
 
             // If consecutiveFalseCount is 1, restart the timer
             if (consecutiveFalseCount == 1) {
+            	for (int k = 0; k < images.length; k++) {
+            		if (imageFrozen[k] == false) {
+            			imageFrozen[k] = true;
+            			stack.push(k);
+            		}
+            	}
                 delayTimer.restart();
                 previousClickedImageIndex = -1;
             }
