@@ -21,7 +21,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
@@ -76,6 +75,7 @@ public class MainMenuPanel extends JPanel {
         		button.setBackground(backgroundColor);
         		button.setForeground(Color.WHITE);
         	}
+        	
 		});
 		
 		button.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -110,12 +110,11 @@ public class MainMenuPanel extends JPanel {
 	}
 	
 	private class ButtonHandler implements ActionListener {
-
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
 			if (e.getActionCommand().equals("Play")) {
-				//
+				switchToPanel("InGame");
 			} else if (e.getActionCommand().equals("Setting")) {
 				//
 			} else if (e.getActionCommand().equals("Exit")) {
@@ -124,24 +123,16 @@ public class MainMenuPanel extends JPanel {
 				if (choose == JOptionPane.YES_OPTION) {
 					System.exit(0);
 				}
+				
 			}
+			
 		}
+		
 	}
 	
-	public static void main(String[] args) {
-		SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                JFrame frame = new JFrame("Test");
-                MainMenuPanel mmp = new MainMenuPanel();
-                
-                mmp.setPreferredSize(new Dimension(800, 600));
-                
-                frame.add(mmp);
-                frame.pack();
-                frame.setLocationRelativeTo(null);
-                frame.setVisible(true);
-            }
-        });
+	private void switchToPanel(String panelName) {
+		GamePanel parent = (GamePanel) getParent();
+		parent.showPanel(panelName);
 	}
+	
 }
