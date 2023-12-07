@@ -5,15 +5,20 @@ import java.awt.CardLayout;
 import javax.swing.JPanel;
 
 public class GamePanel extends JPanel {
-	private CardLayout cardLayout = new CardLayout();
-	
-	public GamePanel() {
-		 setLayout(cardLayout);
-		 add(new MainMenuPanel(), "MainMenu");
-		 add(new InGamePanel(), "Image");
-	}
-	
-	public void showPanel(String name) {
-		cardLayout.show(this, name);
-	}
+    private CardLayout cardLayout = new CardLayout();
+    private InGamePanel inGamePanel;
+
+    public GamePanel(String[] imagePaths) {
+        setLayout(cardLayout);
+        add(new MainMenuPanel(), "MainMenu");
+        
+        // Create InGamePanel and pass imagePaths
+        inGamePanel = new InGamePanel(imagePaths);
+        add(inGamePanel, "InGame");
+    }
+
+    public void showPanel(String name) {
+        cardLayout.show(this, name);
+    }
+    
 }

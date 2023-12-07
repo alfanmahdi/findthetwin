@@ -2,6 +2,8 @@ package com.ftt;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Random;
 import java.awt.geom.RoundRectangle2D;
 import javax.swing.Timer;
@@ -11,56 +13,64 @@ import java.util.Deque;
 public class InGamePanel extends JPanel {
 
     private Image[] images;
-    private Image backgroundImage;  // New variable for the covering image
-    private int[][][] imagePositions; // Array untuk menyimpan posisi gambar dalam array 3D [3][2][2]
+    private Image backgroundImage;
+    private boolean[][] drawBackgroundImage;
+    private int[][][] imagePositions;
+    private int[][] imageIndices;
+    private int[] previousClickedIndices = {-1, -1, -1, -1};
     private int previousClickedImageIndex = -1;
     private boolean[] imageFrozen;
-    private int[][] imageIndices;
     private int[] appearedImage;
-    private int[] previousClickedIndices = {-1, -1, -1, -1};
-    private int gap = 5;
-    private boolean[][] drawBackgroundImage; // Array to track whether to draw background image for each element
-    private int consecutiveFalseCount = 0;
     private Timer delayTimer;
+    private int gap = 5;
+    private int consecutiveFalseCount = 0;
     private Deque<Integer> stack;
 
     public InGamePanel(String[] imagePaths) {
         initializeImages(imagePaths);
-        imageFrozen = new boolean[imagePaths.length];
+        initializeImageFrozen();
         initializeImagePositions();
         initializeImageIndices();
-        this.setBackground(Color.BLACK);
         initializeTimer();
+        this.setBackground(Color.BLACK);
         this.stack = new ArrayDeque<>();
-        }
-    
-    private void initializeTimer() {
-    	delayTimer = new Timer(1000, e -> {
-    	    drawBackgroundImage[previousClickedIndices[0]][previousClickedIndices[1]] =
-    	            !drawBackgroundImage[previousClickedIndices[0]][previousClickedIndices[1]];
-    	    drawBackgroundImage[previousClickedIndices[2]][previousClickedIndices[3]] =
-    	            !drawBackgroundImage[previousClickedIndices[2]][previousClickedIndices[3]];
-    	    repaint();
-    	    consecutiveFalseCount = 0;
-    	    // Add the logic to freeze and unfreeze images here
-    	    freezeUnfreezeImages();
-    	});
-        delayTimer.setRepeats(false); // Set to false to execute the timer only once
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                handleImageClick(e.getX(), e.getY());
+            }
+            
+        });
+        
     }
     
-    private void freezeUnfreezeImages() {
-        int size = stack.size();
-        for (int k = 0; k < size; k++) {
-            int index = stack.pop();
-            imageFrozen[index] = !imageFrozen[index];
+    private void initializeImages(String[] imagePaths) {
+        images = new Image[imagePaths.length];
+        for (int i = 0; i < imagePaths.length; i++) {
+            images[i] = Toolkit.getDefaultToolkit().getImage(imagePaths[i]);
         }
-        repaint();
+
+        backgroundImage = Toolkit.getDefaultToolkit().getImage("src/assets/Logo1.png");
+        
+        drawBackgroundImage = new boolean[4][3];
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 3; j++) {
+                drawBackgroundImage[i][j] = true;
+            }
+            
+        }
+        
     }
     
-    private void initializeAppearedImages() {
-        appearedImage = new int[images.length];
-        for (int i = 0; i < images.length; i++) {
-            appearedImage[i] = 0;
+    private void initializeImagePositions() {
+        imagePositions = new int[4][3][2];
+
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 3; j++) {
+                imagePositions[i][j][0] = (i + 3) * 130 + 5;
+                imagePositions[i][j][1] = j * 210 + 25;
+            }
+            
         }
         
     }
@@ -83,33 +93,42 @@ public class InGamePanel extends JPanel {
         }
         
     }
-
-    private void initializeImages(String[] imagePaths) {
-        images = new Image[imagePaths.length];
-        for (int i = 0; i < imagePaths.length; i++) {
-            images[i] = Toolkit.getDefaultToolkit().getImage(imagePaths[i]);
-        }
-
-        // Load the covering image
-        backgroundImage = Toolkit.getDefaultToolkit().getImage("src/assets/Logo1.png");
-        // Initialize drawBackgroundImage array
-        drawBackgroundImage = new boolean[4][3];
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 3; j++) {
-                drawBackgroundImage[i][j] = true;  // Set to true for background image initially
-            }
-        }
+    
+    private void initializeImageFrozen() {
+        imageFrozen = new boolean[images.length];
     }
     
-    private void initializeImagePositions() {
-        imagePositions = new int[4][3][2];
-
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 3; j++) {
-                imagePositions[i][j][0] = (i + 3) * 130 + 5;
-                imagePositions[i][j][1] = j * 210 + 25;
-            }
+    private void initializeTimer() {
+    	delayTimer = new Timer(500, e -> {
+    	    drawBackgroundImage[previousClickedIndices[0]][previousClickedIndices[1]] =
+    	            !drawBackgroundImage[previousClickedIndices[0]][previousClickedIndices[1]];
+    	    drawBackgroundImage[previousClickedIndices[2]][previousClickedIndices[3]] =
+    	            !drawBackgroundImage[previousClickedIndices[2]][previousClickedIndices[3]];
+    	    repaint();
+    	    consecutiveFalseCount = 0;
+    	    // Add the logic to freeze and unfreeze images here
+    	    freezeUnfreezeImages();
+    	});
+    	
+        delayTimer.setRepeats(false); // Set to false to execute the timer only once
+    }
+    
+    private void freezeUnfreezeImages() {
+        int size = stack.size();
+        for (int k = 0; k < size; k++) {
+            int index = stack.pop();
+            imageFrozen[index] = !imageFrozen[index];
         }
+        
+        repaint();
+    }
+    
+    private void initializeAppearedImages() {
+        appearedImage = new int[images.length];
+        for (int i = 0; i < images.length; i++) {
+            appearedImage[i] = 0;
+        }
+        
     }
     
     @Override
@@ -123,12 +142,12 @@ public class InGamePanel extends JPanel {
 
                 // Draw the appropriate image based on the boolean array
                 drawImage(g, imageIndices[i][j], x, y, drawBackgroundImage[i][j]);
-
             }
+            
         }
+        
     }
 
-    // Inside the ImagePanel class
     private void drawImage(Graphics g, int index, int x, int y, boolean isBackground) {
         int width = 108;
         int height = 192;
@@ -180,6 +199,7 @@ public class InGamePanel extends JPanel {
             }
             
         }
+        
     }
 
     private void handleImageClick(int i, int j, boolean[][] drawBackgroundImage) {
@@ -208,10 +228,13 @@ public class InGamePanel extends JPanel {
             			imageFrozen[k] = true;
             			stack.push(k);
             		}
+            		
             	}
+            	
                 delayTimer.restart();
                 previousClickedImageIndex = -1;
             }
+            
             consecutiveFalseCount++;
         } else {
             if (isDifferentPosition) {
@@ -223,7 +246,9 @@ public class InGamePanel extends JPanel {
             } else {
                 System.out.println("Image " + clickedIndex + " already clicked!");
             }
+            
         }
+        
     }
     
 }
