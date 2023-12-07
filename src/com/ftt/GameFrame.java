@@ -7,22 +7,25 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-public class InGameFrame extends JFrame {
+public class GameFrame extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
-    private ImagePanel imagePanel;
+    private InGamePanel imagePanel;
 
-    public InGameFrame(String[] imagePaths) {
+    public GameFrame(String[] imagePaths) {
         super("In Game");
+        
+        MainMenuPanel mainMenu = new MainMenuPanel();
 
-        imagePanel = new ImagePanel(imagePaths);
+        imagePanel = new InGamePanel(imagePaths);
         setLayout(new BorderLayout());
         add(imagePanel, BorderLayout.CENTER);
+        add(mainMenu);
 
         addMouseListener(new ImageClickListener());
         
-        imagePanel = new ImagePanel(imagePaths);
+        imagePanel = new InGamePanel(imagePaths);
         getContentPane().add(imagePanel, BorderLayout.CENTER);
 
         addComponentListener(new ComponentAdapter() {

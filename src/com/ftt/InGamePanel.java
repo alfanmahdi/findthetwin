@@ -8,7 +8,7 @@ import javax.swing.Timer;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-public class ImagePanel extends JPanel {
+public class InGamePanel extends JPanel {
 
     private Image[] images;
     private Image backgroundImage;  // New variable for the covering image
@@ -24,7 +24,7 @@ public class ImagePanel extends JPanel {
     private Timer delayTimer;
     private Deque<Integer> stack;
 
-    public ImagePanel(String[] imagePaths) {
+    public InGamePanel(String[] imagePaths) {
         initializeImages(imagePaths);
         imageFrozen = new boolean[imagePaths.length];
         initializeImagePositions();
