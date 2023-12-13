@@ -1,12 +1,15 @@
 package com.ftt;
 
 import javax.swing.*;
+import javax.swing.border.LineBorder;
+
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Random;
 import java.awt.geom.RoundRectangle2D;
-import javax.swing.Timer;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -25,6 +28,7 @@ public class InGamePanel extends JPanel {
     private int gap = 5;
     private int consecutiveFalseCount = 0;
     private Deque<Integer> stack;
+    Color backgroundColor = Color.decode("#23253F");
 
     public InGamePanel(String[] imagePaths) {
         initializeImages(imagePaths);
@@ -32,7 +36,7 @@ public class InGamePanel extends JPanel {
         initializeImagePositions();
         initializeImageIndices();
         initializeTimer();
-        this.setBackground(Color.BLACK);
+        this.setBackground(backgroundColor);
         this.stack = new ArrayDeque<>();
         addMouseListener(new MouseAdapter() {
             @Override
@@ -41,8 +45,39 @@ public class InGamePanel extends JPanel {
             }
             
         });
-        
+        JPanel button = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        addButton(this, "Pause", gbc, new Dimension(100, 50));
     }
+    
+    private void addButton(JPanel panel, String text, GridBagConstraints gbc, Dimension preferredSize) {
+		JButton button = new JButton(text);
+		button.setPreferredSize(preferredSize);
+		
+		button.setFont(new Font("Arial", Font.BOLD, 18));
+		button.setForeground(Color.BLACK);
+		button.setBackground(Color.WHITE);
+		
+		gbc.insets = new Insets(0, 0, 0, 0);
+		
+		button.addActionListener(new ButtonHandler());
+		
+		button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		button.setFocusPainted(false);
+		panel.add(button, gbc);
+	}
+    
+    private class ButtonHandler implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			// TODO Auto-generated method stub
+			if (e.getActionCommand().equals("Pause")) {
+				//
+			}
+			
+		}
+		
+	}
     
     private void initializeImages(String[] imagePaths) {
         images = new Image[imagePaths.length];
@@ -67,8 +102,8 @@ public class InGamePanel extends JPanel {
 
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 3; j++) {
-                imagePositions[i][j][0] = (i + 3) * 130 + 5;
-                imagePositions[i][j][1] = j * 210 + 25;
+                imagePositions[i][j][0] = (i + 3) * 155 + 5;
+                imagePositions[i][j][1] = j * 210 + 100;
             }
             
         }
@@ -250,5 +285,8 @@ public class InGamePanel extends JPanel {
         }
         
     }
-    
+    private void switchToPanel(String panelName) {
+		GamePanel parent = (GamePanel) getParent();
+		parent.showPanel(panelName);
+	}
 }
