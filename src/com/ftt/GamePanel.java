@@ -11,11 +11,11 @@ public class GamePanel extends JPanel {
     public GamePanel(String[] imagePaths) {
         setLayout(cardLayout);
         add(new MainMenuPanel(), "MainMenu");
-        add(new LevelPanel(), "Level");
         
         // Create InGamePanel and pass imagePaths
         inGamePanel = new InGamePanel(imagePaths);
         add(inGamePanel, "InGame");
+        add(new LevelPanel(inGamePanel), "Level");
     }
 
     public void showPanel(String name) {

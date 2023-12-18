@@ -17,20 +17,36 @@ public class InGamePanel extends JPanel {
 
     private Image[] images;
     private Image backgroundImage;
-    private boolean[][] drawBackgroundImage;
+    private boolean[][] drawCoverImage;
     private int[][][] imagePositions;
-    private int[][] imageIndices;
+    public int[][] imageIndices;
     private int[] previousClickedIndices = {-1, -1, -1, -1};
     private int previousClickedImageIndex = -1;
     private boolean[] imageFrozen;
-    private int[] appearedImage;
+    public int[] appearedImage;
     private Timer delayTimer;
+    private int imageAmount;
+    private int row;
+    private int column;
+    private int width;
+    private int height;
     private int gap = 5;
     private int consecutiveFalseCount = 0;
     private Deque<Integer> stack;
     Color backgroundColor = Color.decode("#23253F");
+    public Timer gameTimer;
+    private int remainingTime = 45; // Initial time in seconds
+    private JLabel timerLabel;
+    private int score = 0;
+    private JLabel scoreLabel;
+    private int frozenImageCounter = 0;
 
     public InGamePanel(String[] imagePaths) {
+    	setImageAmount(8);
+    	setRow(4);
+    	setColumn(4);
+    	setWidth(108);
+    	setHeight(192);
         initializeImages(imagePaths);
         initializeImageFrozen();
         initializeImagePositions();
@@ -38,6 +54,8 @@ public class InGamePanel extends JPanel {
         initializeTimer();
         this.setBackground(backgroundColor);
         this.stack = new ArrayDeque<>();
+        initializeTimer();
+        initializeGameTimer();
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -48,6 +66,22 @@ public class InGamePanel extends JPanel {
         JPanel button = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         addButton(this, "Pause", gbc, new Dimension(100, 50));
+        // Create and add the timer label
+        timerLabel = new JLabel();
+        timerLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        timerLabel.setForeground(Color.WHITE);
+        timerLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        timerLabel.setVerticalAlignment(SwingConstants.CENTER);
+        add(timerLabel);
+        scoreLabel = new JLabel();
+        scoreLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        scoreLabel.setForeground(Color.WHITE);
+        scoreLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        scoreLabel.setVerticalAlignment(SwingConstants.TOP);
+        add(scoreLabel);
+        updateScoreDisplay();
+        updateTimerDisplay();
+        gameTimer.stop();
     }
     
     private void addButton(JPanel panel, String text, GridBagConstraints gbc, Dimension preferredSize) {
@@ -72,25 +106,56 @@ public class InGamePanel extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
 			if (e.getActionCommand().equals("Pause")) {
-				//
+		        gameTimer.stop();
+				switchToPanel("Level");
 			}
 			
 		}
 		
 	}
     
+    private void initializeGameTimer() {
+        gameTimer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                remainingTime--;
+
+                if (remainingTime <= 0) {
+                    gameTimer.stop();
+                    handleGameLose();
+                }
+
+                // Update the timer display in your frame (you need to define a method to update UI)
+                updateTimerDisplay();
+            }
+        });
+
+        gameTimer.start();
+    }
+    
+    private void updateTimerDisplay() {
+        // Set the text of the timer label and position it to the left and centerY
+        timerLabel.setText("Time: " + remainingTime + " seconds");
+        int labelWidth = timerLabel.getPreferredSize().width;
+        int centerX = getWidth() / 2;
+        int centerY = getHeight() / 2;
+        int labelX = centerX - labelWidth - 10; // Adjust the position as needed
+        int labelY = centerY - timerLabel.getPreferredSize().height / 2;
+        timerLabel.setBounds(labelX, labelY, labelWidth, timerLabel.getPreferredSize().height);
+    }
+    
     private void initializeImages(String[] imagePaths) {
-        images = new Image[imagePaths.length];
-        for (int i = 0; i < imagePaths.length; i++) {
+        images = new Image[imageAmount];
+        for (int i = 0; i < imageAmount; i++) {
             images[i] = Toolkit.getDefaultToolkit().getImage(imagePaths[i]);
         }
 
         backgroundImage = Toolkit.getDefaultToolkit().getImage("src/assets/Logo1.png");
         
-        drawBackgroundImage = new boolean[4][3];
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 3; j++) {
-                drawBackgroundImage[i][j] = true;
+        drawCoverImage = new boolean[row][column];
+        for (int i = 0; i < row; i++) {
+            for (int j = 0; j < column; j++) {
+                drawCoverImage[i][j] = true;
             }
             
         }
@@ -98,47 +163,24 @@ public class InGamePanel extends JPanel {
     }
     
     private void initializeImagePositions() {
-        imagePositions = new int[4][3][2];
-
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 3; j++) {
-                imagePositions[i][j][0] = (i + 3) * 155 + 5;
-                imagePositions[i][j][1] = j * 210 + 100;
-            }
-            
-        }
-        
+        imagePositions = new int[row][column][2];        
     }
     
     private void initializeImageIndices() {
-        imageIndices = new int[4][3];
-        initializeAppearedImages();
-        
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 3; j++) {
-                int index;
-                do {
-                    index = new Random().nextInt(images.length);
-                } while (appearedImage[index] > 1);
-
-                imageIndices[i][j] = index;
-                appearedImage[index]++;
-            }
-            
-        }
-        
+        imageIndices = new int[row][column];
+        initializeAppearedImages(); 
     }
     
     private void initializeImageFrozen() {
-        imageFrozen = new boolean[images.length];
+        imageFrozen = new boolean[imageAmount];
     }
     
     private void initializeTimer() {
     	delayTimer = new Timer(500, e -> {
-    	    drawBackgroundImage[previousClickedIndices[0]][previousClickedIndices[1]] =
-    	            !drawBackgroundImage[previousClickedIndices[0]][previousClickedIndices[1]];
-    	    drawBackgroundImage[previousClickedIndices[2]][previousClickedIndices[3]] =
-    	            !drawBackgroundImage[previousClickedIndices[2]][previousClickedIndices[3]];
+    	    drawCoverImage[previousClickedIndices[0]][previousClickedIndices[1]] =
+    	            !drawCoverImage[previousClickedIndices[0]][previousClickedIndices[1]];
+    	    drawCoverImage[previousClickedIndices[2]][previousClickedIndices[3]] =
+    	            !drawCoverImage[previousClickedIndices[2]][previousClickedIndices[3]];
     	    repaint();
     	    consecutiveFalseCount = 0;
     	    // Add the logic to freeze and unfreeze images here
@@ -159,24 +201,87 @@ public class InGamePanel extends JPanel {
     }
     
     private void initializeAppearedImages() {
-        appearedImage = new int[images.length];
-        for (int i = 0; i < images.length; i++) {
-            appearedImage[i] = 0;
+        appearedImage = new int[imageAmount];
+    }
+    
+    public void setImagePositions(int row, int collumn) {
+    	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    	int centerX = screenSize.width/2;
+    	int centerY = screenSize.height/2;
+        
+        for (int i = 0; i < row; i++) {
+            for (int j = 0; j < column; j++) {
+                imagePositions[i][j][0] = centerX + (i - row/2) * (width + 20);
+                imagePositions[i][j][1] = centerY + (j - column/2) * (height + 20);
+            }
+            
         }
         
+    }
+    
+    public void setImageIndices(int row, int column) {
+    	for (int i = 0; i < imageAmount; i++) {
+            appearedImage[i] = 0;
+        }
+    	
+    	for (int i = 0; i < row; i++) {
+            for (int j = 0; j < column; j++) {
+                int index;
+                do {
+                    index = new Random().nextInt(imageAmount);
+                } while (appearedImage[index] > 1);
+
+                imageIndices[i][j] = index;
+                appearedImage[index]++;
+            }
+            
+        }
+    	
+    }
+    
+    public void setImageAmount(int imageAmount) {
+    	this.imageAmount = imageAmount;
+    }
+    
+    public void setRow(int row) {
+    	this.row = row;
+    }
+    
+    public void setColumn(int column) {
+    	this.column = column;
+    }
+    
+    public void setWidth(int width) {
+    	this.width = width;
+    }
+    
+    public void setHeight(int height) {
+    	this.height = height;
+    }
+    
+    private void setRemainingTime(int remainingTimer) {
+    	this.remainingTime = remainingTimer;
+    }
+    
+    private void setScore(int score) {
+    	this.score = score;
+    }
+    
+    private void setFrozenImageCounter(int frozenImageCounter) {
+    	this.frozenImageCounter = frozenImageCounter;
     }
     
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 3; j++) {
+        for (int i = 0; i < row; i++) {
+            for (int j = 0; j < column; j++) {
                 int x = imagePositions[i][j][0];
                 int y = imagePositions[i][j][1];
 
                 // Draw the appropriate image based on the boolean array
-                drawImage(g, imageIndices[i][j], x, y, drawBackgroundImage[i][j]);
+                drawImage(g, imageIndices[i][j], x, y, drawCoverImage[i][j]);
             }
             
         }
@@ -184,8 +289,6 @@ public class InGamePanel extends JPanel {
     }
 
     private void drawImage(Graphics g, int index, int x, int y, boolean isBackground) {
-        int width = 108;
-        int height = 192;
         int cornerRadius = 20;
 
         // Create a rounded rectangle as the outer border
@@ -217,17 +320,15 @@ public class InGamePanel extends JPanel {
     }
 
     public void handleImageClick(int mouseX, int mouseY) {
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 3; j++) {
+        for (int i = 0; i < row; i++) {
+            for (int j = 0; j < column; j++) {
                 int x = imagePositions[i][j][0];
                 int y = imagePositions[i][j][1] + 25;
-                int width = 108;
-                int height = 192;
-
+                
                 if (!imageFrozen[imageIndices[i][j]] &&
                         ((mouseX >= x && mouseX <= x + (width + 2 * gap + 3) && mouseY >= y && mouseY <= y + (height + 2 * gap)) ||
                                 (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height))) {
-                    handleImageClick(i, j, drawBackgroundImage);
+                    handleImageClick(i, j, drawCoverImage);
                     break;
                 }
                 
@@ -237,7 +338,7 @@ public class InGamePanel extends JPanel {
         
     }
 
-    private void handleImageClick(int i, int j, boolean[][] drawBackgroundImage) {
+    private void handleImageClick(int i, int j, boolean[][] drawCoverImage) {
         int clickedIndex = imageIndices[i][j];
 
         boolean isNewClick = clickedIndex != previousClickedImageIndex;
@@ -254,11 +355,11 @@ public class InGamePanel extends JPanel {
             previousClickedIndices[1] = j;
 
             // Toggle the boolean variable for the next draw
-            drawBackgroundImage[i][j] = !drawBackgroundImage[i][j];
+            drawCoverImage[i][j] = !drawCoverImage[i][j];
 
             // If consecutiveFalseCount is 1, restart the timer
             if (consecutiveFalseCount == 1) {
-            	for (int k = 0; k < images.length; k++) {
+            	for (int k = 0; k < imageAmount; k++) {
             		if (imageFrozen[k] == false) {
             			imageFrozen[k] = true;
             			stack.push(k);
@@ -273,11 +374,19 @@ public class InGamePanel extends JPanel {
             consecutiveFalseCount++;
         } else {
             if (isDifferentPosition) {
-                drawBackgroundImage[i][j] = !drawBackgroundImage[i][j];
+                drawCoverImage[i][j] = !drawCoverImage[i][j];
                 imageFrozen[clickedIndex] = true;
                 repaint();
                 System.out.println("Image " + clickedIndex + " is now frozen!");
+                frozenImageCounter++;
+                // Increment the score by 20
+                score += 20;
+                updateScoreDisplay(); // Add a method to update the score display
                 consecutiveFalseCount = 0; // Reset consecutiveFalseCount if a different position is clicked
+             // Check if all images are frozen (You Win!)
+                if (frozenImageCounter == imageAmount) {
+                    handleGameWin(); // Add a method to handle winning
+                }
             } else {
                 System.out.println("Image " + clickedIndex + " already clicked!");
             }
@@ -285,8 +394,51 @@ public class InGamePanel extends JPanel {
         }
         
     }
+    
+    private void updateScoreDisplay() {
+        // Assuming you have a JLabel named scoreLabel
+        scoreLabel.setText("Score: " + score);
+    }
+    
     private void switchToPanel(String panelName) {
 		GamePanel parent = (GamePanel) getParent();
 		parent.showPanel(panelName);
 	}
+    
+    private void handleGameWin() {
+        gameTimer.stop();
+        int option = JOptionPane.showOptionDialog(
+                this,
+                "You Win!",
+                "Congratulations",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null,
+                new Object[]{"Main Menu"},
+                "OK");
+
+        if (option == 0) {
+            switchToPanel("MainMenu");
+            setRemainingTime(45);
+            setScore(0);
+            setFrozenImageCounter(0);
+            for (int i = 0; i < imageAmount; i++) {
+                imageFrozen[i] = !imageFrozen[i];
+            }
+            
+            for (int i = 0; i < row; i++) {
+                for (int j = 0; j < column; j++) {
+                    drawCoverImage[i][j] = true;
+                }
+                
+            }
+            
+        }
+        
+    }
+    
+    private void handleGameLose() {
+        JOptionPane.showMessageDialog(this, "You Lose!", "Congratulations", JOptionPane.INFORMATION_MESSAGE);
+    }
+    
 }

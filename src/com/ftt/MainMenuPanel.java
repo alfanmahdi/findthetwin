@@ -42,7 +42,6 @@ public class MainMenuPanel extends JPanel {
         JPanel buttons = new JPanel(new GridBagLayout());
         
         addButton(buttons, "Play", gbc, buttonSize);
-        addButton(buttons, "Setting", gbc, buttonSize);
         addButton(buttons, "Exit", gbc, buttonSize);
 
         gbc.weighty = 1;
@@ -115,8 +114,6 @@ public class MainMenuPanel extends JPanel {
 			// TODO Auto-generated method stub
 			if (e.getActionCommand().equals("Play")) {
 				switchToPanel("Level");
-			} else if (e.getActionCommand().equals("Setting")) {
-				//
 			} else if (e.getActionCommand().equals("Exit")) {
 				JOptionPane option = new JOptionPane();
 				int choose = JOptionPane.showConfirmDialog(null, "Confirm exit?", "Exit Confirmation", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
