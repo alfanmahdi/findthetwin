@@ -29,6 +29,9 @@ public class InGamePanel extends JPanel {
     private int consecutiveFalseCount = 0;
     private Deque<Integer> stack;
     Color backgroundColor = Color.decode("#23253F");
+    
+    // Game State
+    private boolean isPaused = false;
 
     public InGamePanel(String[] imagePaths) {
         initializeImages(imagePaths);
@@ -55,12 +58,24 @@ public class InGamePanel extends JPanel {
 		button.setPreferredSize(preferredSize);
 		
 		button.setFont(new Font("Arial", Font.BOLD, 18));
-		button.setForeground(Color.BLACK);
-		button.setBackground(Color.WHITE);
+		button.setForeground(Color.WHITE);
+		button.setBackground(backgroundColor);
 		
 		gbc.insets = new Insets(0, 0, 0, 0);
 		
 		button.addActionListener(new ButtonHandler());
+		
+		button.addMouseListener(new MouseAdapter() {
+			public void mouseEntered(MouseEvent e) {
+				button.setBackground(Color.WHITE);
+				button.setForeground(backgroundColor);
+			}
+			
+			public void mouseExited(MouseEvent e) {
+				button.setBackground(backgroundColor);
+				button.setForeground(Color.WHITE);
+			}
+		});
 		
 		button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		button.setFocusPainted(false);
@@ -72,7 +87,8 @@ public class InGamePanel extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
 			if (e.getActionCommand().equals("Pause")) {
-				//
+				switchToPanel("Pause");
+				pauseGame();
 			}
 			
 		}
@@ -284,6 +300,11 @@ public class InGamePanel extends JPanel {
             
         }
         
+    }
+    
+    public void pauseGame() {
+    	isPaused = true;
+    	delayTimer.stop();    
     }
     private void switchToPanel(String panelName) {
 		GamePanel parent = (GamePanel) getParent();
