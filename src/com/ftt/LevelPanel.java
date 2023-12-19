@@ -20,8 +20,11 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
 public class LevelPanel extends JPanel {
+	InGamePanel inGamePanel;
 	Color backgroundColor = Color.decode("#23253F");
-	public LevelPanel() {
+	
+	public LevelPanel(InGamePanel inGamePanel) {
+		this.inGamePanel = inGamePanel;
 		setBorder(new EmptyBorder(10, 10, 10, 10));
 		setLayout(new GridBagLayout());
 		
@@ -107,8 +110,36 @@ public class LevelPanel extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
 			if (e.getActionCommand().equals("Easy")) {
+				inGamePanel.setImageAmount(2);
+                inGamePanel.setRow(2);
+                inGamePanel.setColumn(2);
+                inGamePanel.setImageIndices(2, 2);
+                inGamePanel.setWidth(108);
+                inGamePanel.setHeight(192);
+                inGamePanel.setImagePositions(2, 2);
+                inGamePanel.gameTimer.start();
 				switchToPanel("InGame");
-			} else if (e.getActionCommand().equals("Back to Main Menu")) {
+			} else if (e.getActionCommand().equals("Medium")) {
+				inGamePanel.setImageAmount(4);
+                inGamePanel.setRow(4);
+                inGamePanel.setColumn(2);
+                inGamePanel.setImageIndices(4, 2);
+                inGamePanel.setWidth(108);
+                inGamePanel.setHeight(192);
+                inGamePanel.setImagePositions(4, 2);
+                inGamePanel.gameTimer.start();
+				switchToPanel("InGame");
+			} else if (e.getActionCommand().equals("Hard")) {
+				inGamePanel.setImageAmount(8);
+                inGamePanel.setRow(4);
+                inGamePanel.setColumn(4);
+                inGamePanel.setImageIndices(4, 4);
+                inGamePanel.setWidth(72);
+                inGamePanel.setHeight(128);
+                inGamePanel.setImagePositions(4, 4);
+                inGamePanel.gameTimer.start();
+				switchToPanel("InGame");
+			}  else if (e.getActionCommand().equals("Back to Main Menu")) {
 				switchToPanel("MainMenu");
 			}
 		}

@@ -20,11 +20,13 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
 public class PausePanel extends JPanel {
+	InGamePanel inGamePanel;
 	Color backgroundColor = Color.decode("#23253F");
 	GameLauncher gl = new GameLauncher();
 	InGamePanel ign = new InGamePanel(gl.imagePaths);
 	
-	public PausePanel() {
+	public PausePanel(InGamePanel inGamePanel) {
+		this.inGamePanel = inGamePanel;
 		setBorder(new EmptyBorder(10, 10, 10, 10));
 		setLayout(new GridBagLayout());
 		
@@ -109,36 +111,30 @@ public class PausePanel extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
 			if (e.getActionCommand().equals("Resume")) {
+				inGamePanel.gameTimer.start();
 				switchToPanel("InGame");
 			} else if (e.getActionCommand().equals("Restart")) {
-				removeCurrentGamePanel();
-				addNewGamePanel();
+				inGamePanel.setRemainingTime(45);
+	            inGamePanel.setScore(0);
+	            inGamePanel.setFrozenImageCounter(0);
+	            inGamePanel.previousClickedImageIndex = -1;
+	            inGamePanel.setPreviousClickedIndices();
+	            for (int i = 0; i < inGamePanel.imageAmount; i++) {
+	                inGamePanel.imageFrozen[i] = false;
+	            }
+	            
+	            for (int i = 0; i < inGamePanel.row; i++) {
+	                for (int j = 0; j < inGamePanel.column; j++) {
+	                    inGamePanel.drawCoverImage[i][j] = true;
+	                }
+	                
+	            }
+	            inGamePanel.gameTimer.start();
 				switchToPanel("InGame");
 			} else if (e.getActionCommand().equals("Back to Main Menu")) {
 				switchToPanel("MainMenu");
 			}
 		}
-	}
-	
-	// Remove current InGamePanel
-	private void removeCurrentGamePanel() {
-		GamePanel parent = (GamePanel) getParent();
-		
-		parent.remove(ign);
-		
-		parent.revalidate();
-		parent.repaint();
-	}
-	
-	private void addNewGamePanel() {
-		GamePanel parent = (GamePanel) getParent();
-		
-		ign = new InGamePanel(gl.imagePaths);
-		
-		parent.add(ign, "InGame");
-		
-		parent.revalidate();
-		parent.repaint();
 	}
 	
 	private void switchToPanel(String panelName) {
