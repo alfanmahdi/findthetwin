@@ -7,11 +7,13 @@ import javax.swing.JPanel;
 public class GamePanel extends JPanel {
     private CardLayout cardLayout = new CardLayout();
     private InGamePanel inGamePanel;
+    private InGamePanel newInGamePanel;
 
     public GamePanel(String[] imagePaths) {
         setLayout(cardLayout);
         add(new MainMenuPanel(), "MainMenu");
         add(new LevelPanel(), "Level");
+        add(new PausePanel(), "Pause");
         
         // Create InGamePanel and pass imagePaths
         inGamePanel = new InGamePanel(imagePaths);
